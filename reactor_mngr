@@ -1,0 +1,49 @@
+--v1.0
+--SpidyJuice's cool reactor display/management program except rewritten and not stupid and drunk and a shell of its former self
+--this was written for a 1h by 2w monitor
+--it operates at 5 seconds per frame! You can change that by editing os.sleep on line 14, but at a point computercraft will yell at you for it running too fast...
+local monitor = peripheral.wrap("monitor_3")
+local reactor = peripheral.wrap("BigReactors-Reactor_1")
+local eread = reactor.getEnergyStored()
+local max = 10000000
+local offtrigger = max*0.9
+local ontrigger = max*0.5
+
+--I think I could have even combined checkEnergy and updateStatus, I wonder if that would've been a gramatically good or bad idea
+
+function checkEnergy()
+	repeat os.sleep(5)
+	until eread ~= reactor.getEnergyStored()
+	updateStatus()
+	return checkEnergy()
+end
+
+function newLine()
+local _,cY = monitor.getCursorPos()
+monitor.setCursorPos(1,cY+1)
+end
+
+function updateStatus()
+	eread = reactor.getEnergyStored()
+		monitor.clear()
+		monitor.setCursorPos(1,1)
+		monitor.write(eread)
+		monitor.write(" /")
+		newLine()
+		monitor.write(max)
+		newLine()
+		newLine()
+		newLine()
+		monitor.write("Status: ")
+	if eread > offtrigger then
+		reactor.setActive(false)
+		monitor.write("Cooling")
+	elseif eread < ontrigger then
+		reactor.setActive(true)
+		monitor.write("Heating")
+	else monitor.write("...") end
+	os.sleep(5)
+end
+
+updateStatus()
+checkEnergy()
